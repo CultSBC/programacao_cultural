@@ -1,572 +1,484 @@
-import React, { useState, useEffect } from 'react';
-import { Calendar, Plus, Search, Filter, FileText, Users, Clock, CheckCircle, XCircle, AlertCircle, BarChart3, Download, Eye, Edit, Trash2, Upload, Send, Menu, X, Home, List, Settings, Bell } from 'lucide-react';
-
-const SistemaProgramacaoCultural = () => {
-  const [activeTab, setActiveTab] = useState('dashboard');
-  const [eventos, setEventos] = useState([]);
-  const [filtros, setFiltros] = useState({ status: 'todos', local: 'todos', mes: 'todos' });
-  const [showModal, setShowModal] = useState(false);
-  const [modalType, setModalType] = useState('');
-  const [eventoSelecionado, setEventoSelecionado] = useState(null);
-  const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [notificacoes, setNotificacoes] = useState(3);
-
-  // Dados iniciais simulados
-  useEffect(() => {
-    const eventosIniciais = [
-      {
-        id: 1,
-        nome: 'Ocupação CCAA - 4 Pontos e 1 Pesponto',
-        local: 'CCAA - Câmara de Cultura Antonino Assumpção',
-        dataInicio: '2025-01-21',
-        dataFim: '2025-01-25',
-        horario: '10:00 - 18:00',
-        status: 'concluído',
-        descricao: 'Ocupação por coletivos de Economia Criativa',
-        solicitante: 'Fabio',
-        responsavel: 'Fabio',
-        publicoAlcancado: 271,
-        setor: {
-          apoio: 'aprovado',
-          divulgacao: 'aprovado',
-          contratos: 'aprovado'
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Programação Cultural - São Bernardo do Campo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
-      },
-      {
-        id: 2,
-        nome: 'Bruna Louise - Ela Tá Correndo Atrás',
-        local: 'TLG - Teatro Lauro Gomes',
-        dataInicio: '2025-01-24',
-        dataFim: '2025-01-24',
-        horario: '19:00 - 22:00',
-        status: 'concluído',
-        descricao: 'Show de humor',
-        solicitante: 'Fernando',
-        responsavel: "Criativu's Produções",
-        publicoAlcancado: 0,
-        setor: {
-          apoio: 'aprovado',
-          divulgacao: 'aprovado',
-          contratos: 'aprovado'
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
         }
-      },
-      {
-        id: 3,
-        nome: 'Beatles 4ever',
-        local: 'TLG - Teatro Lauro Gomes',
-        dataInicio: '2025-01-25',
-        dataFim: '2025-01-25',
-        horario: '21:00 - 22:30',
-        status: 'concluído',
-        descricao: 'Espetáculo Musical',
-        solicitante: 'Fernando',
-        responsavel: 'Beatles 4Ever',
-        publicoAlcancado: 0,
-        setor: {
-          apoio: 'aprovado',
-          divulgacao: 'aprovado',
-          contratos: 'aprovado'
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
         }
-      },
-      {
-        id: 4,
-        nome: 'Festival de Inverno 2025',
-        local: 'Parque da Juventude',
-        dataInicio: '2025-07-15',
-        dataFim: '2025-07-20',
-        horario: '14:00 - 22:00',
-        status: 'em análise',
-        descricao: 'Festival cultural com múltiplas atividades',
-        solicitante: 'Maria Silva',
-        responsavel: 'Maria Silva',
-        publicoAlcancado: 0,
-        setor: {
-          apoio: 'pendente',
-          divulgacao: 'pendente',
-          contratos: 'pendente'
+
+        .header {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
         }
-      },
-      {
-        id: 5,
-        nome: 'Oficina de Teatro Infantil',
-        local: 'TER - Teatro Elis Regina',
-        dataInicio: '2025-03-10',
-        dataFim: '2025-03-15',
-        horario: '09:00 - 12:00',
-        status: 'aprovado',
-        descricao: 'Oficina gratuita para crianças de 7 a 12 anos',
-        solicitante: 'João Pedro',
-        responsavel: 'Cia Teatral',
-        publicoAlcancado: 0,
-        setor: {
-          apoio: 'aprovado',
-          divulgacao: 'em análise',
-          contratos: 'aprovado'
+
+        .header h1 {
+            font-size: 2rem;
+            margin-bottom: 10px;
         }
-      }
-    ];
-    setEventos(eventosIniciais);
-  }, []);
 
-  const statusConfig = {
-    'concluído': { cor: 'bg-green-100 text-green-800', icon: CheckCircle },
-    'aprovado': { cor: 'bg-blue-100 text-blue-800', icon: CheckCircle },
-    'em análise': { cor: 'bg-yellow-100 text-yellow-800', icon: AlertCircle },
-    'cancelado': { cor: 'bg-red-100 text-red-800', icon: XCircle },
-    'pendente': { cor: 'bg-gray-100 text-gray-800', icon: Clock }
-  };
+        .header p {
+            opacity: 0.9;
+            font-size: 1.1rem;
+        }
 
-  const locaisDisponiveis = [
-    'CCAA - Câmara de Cultura Antonino Assumpção',
-    'TLG - Teatro Lauro Gomes',
-    'TER - Teatro Elis Regina',
-    'Pinacoteca de São Bernardo do Campo',
-    'Parque da Juventade',
-    'Centro Cultural'
-  ];
+        .controls {
+            padding: 25px 30px;
+            background: #f8f9fa;
+            border-bottom: 2px solid #e9ecef;
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
 
-  const eventosFiltrados = eventos.filter(evento => {
-    const statusMatch = filtros.status === 'todos' || evento.status === filtros.status;
-    const localMatch = filtros.local === 'todos' || evento.local === filtros.local;
-    return statusMatch && localMatch;
-  });
+        .search-box {
+            flex: 1;
+            min-width: 250px;
+        }
 
-  const stats = {
-    total: eventos.length,
-    aprovados: eventos.filter(e => e.status === 'aprovado').length,
-    emAnalise: eventos.filter(e => e.status === 'em análise').length,
-    concluidos: eventos.filter(e => e.status === 'concluído').length
-  };
+        .search-box input {
+            width: 100%;
+            padding: 12px 20px;
+            border: 2px solid #dee2e6;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: all 0.3s;
+        }
 
-  const abrirModal = (tipo, evento = null) => {
-    setModalType(tipo);
-    setEventoSelecionado(evento);
-    setShowModal(true);
-  };
+        .search-box input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
 
-  const fecharModal = () => {
-    setShowModal(false);
-    setEventoSelecionado(null);
-  };
+        .filter-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
 
-  const salvarEvento = (novoEvento) => {
-    if (eventoSelecionado) {
-      setEventos(eventos.map(e => e.id === eventoSelecionado.id ? { ...novoEvento, id: e.id } : e));
-    } else {
-      setEventos([...eventos, { ...novoEvento, id: Date.now() }]);
-    }
-    fecharModal();
-  };
+        select, .btn {
+            padding: 12px 20px;
+            border: 2px solid #dee2e6;
+            border-radius: 10px;
+            font-size: 1rem;
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
 
-  const excluirEvento = (id) => {
-    if (confirm('Tem certeza que deseja excluir este evento?')) {
-      setEventos(eventos.filter(e => e.id !== id));
-    }
-  };
+        select:hover, .btn:hover {
+            border-color: #667eea;
+            background: #f8f9ff;
+        }
 
-  return (
-    <div className="min-h-screen bg-gray-50 flex">
-      {/* Sidebar */}
-      <div className={`${sidebarOpen ? 'w-64' : 'w-20'} bg-gradient-to-b from-blue-900 to-blue-800 text-white transition-all duration-300 flex flex-col`}>
-        <div className="p-4 border-b border-blue-700 flex items-center justify-between">
-          {sidebarOpen && (
-            <div>
-              <h1 className="font-bold text-lg">Sistema de Cultura</h1>
-              <p className="text-xs text-blue-200">São Bernardo do Campo</p>
-            </div>
-          )}
-          <button onClick={() => setSidebarOpen(!sidebarOpen)} className="p-2 hover:bg-blue-700 rounded">
-            {sidebarOpen ? <X size={20} /> : <Menu size={20} />}
-          </button>
+        .btn-primary {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .btn-primary:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            padding: 25px 30px;
+            background: #f8f9fa;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+            text-align: center;
+            transition: transform 0.3s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .stat-card .number {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 5px;
+        }
+
+        .stat-card .label {
+            color: #6c757d;
+            font-size: 0.95rem;
+        }
+
+        .table-container {
+            padding: 30px;
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead {
+            background: #f8f9fa;
+            position: sticky;
+            top: 0;
+        }
+
+        th {
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            color: #495057;
+            border-bottom: 2px solid #dee2e6;
+            white-space: nowrap;
+        }
+
+        td {
+            padding: 15px;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        tbody tr {
+            transition: background 0.2s;
+        }
+
+        tbody tr:hover {
+            background: #f8f9ff;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .status-ativo {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-cancelado {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .status-mudou {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .local-badge {
+            background: #e7f3ff;
+            color: #004085;
+            padding: 4px 10px;
+            border-radius: 5px;
+            font-size: 0.85rem;
+        }
+
+        .date-cell {
+            font-weight: 600;
+            color: #667eea;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #6c757d;
+        }
+
+        .empty-state svg {
+            width: 100px;
+            height: 100px;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 1.5rem;
+            }
+
+            .controls {
+                flex-direction: column;
+            }
+
+            .search-box {
+                width: 100%;
+            }
+
+            table {
+                font-size: 0.9rem;
+            }
+
+            th, td {
+                padding: 10px;
+            }
+        }
+
+        .view-toggle {
+            display: flex;
+            gap: 5px;
+            background: white;
+            border-radius: 10px;
+            padding: 5px;
+            border: 2px solid #dee2e6;
+        }
+
+        .view-btn {
+            padding: 10px 20px;
+            border: none;
+            background: transparent;
+            border-radius: 7px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .view-btn.active {
+            background: #667eea;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📅 Sistema de Programação Cultural</h1>
+            <p>Secretaria de Cultura - São Bernardo do Campo</p>
         </div>
 
-        <nav className="flex-1 p-4">
-          <button
-            onClick={() => setActiveTab('dashboard')}
-            className={`w-full flex items-center gap-3 p-3 rounded mb-2 transition ${
-              activeTab === 'dashboard' ? 'bg-blue-700' : 'hover:bg-blue-700'
-            }`}
-          >
-            <Home size={20} />
-            {sidebarOpen && <span>Dashboard</span>}
-          </button>
-          <button
-            onClick={() => setActiveTab('eventos')}
-            className={`w-full flex items-center gap-3 p-3 rounded mb-2 transition ${
-              activeTab === 'eventos' ? 'bg-blue-700' : 'hover:bg-blue-700'
-            }`}
-          >
-            <List size={20} />
-            {sidebarOpen && <span>Eventos</span>}
-          </button>
-          <button
-            onClick={() => setActiveTab('calendario')}
-            className={`w-full flex items-center gap-3 p-3 rounded mb-2 transition ${
-              activeTab === 'calendario' ? 'bg-blue-700' : 'hover:bg-blue-700'
-            }`}
-          >
-            <Calendar size={20} />
-            {sidebarOpen && <span>Calendário</span>}
-          </button>
-          <button
-            onClick={() => setActiveTab('relatorios')}
-            className={`w-full flex items-center gap-3 p-3 rounded mb-2 transition ${
-              activeTab === 'relatorios' ? 'bg-blue-700' : 'hover:bg-blue-700'
-            }`}
-          >
-            <BarChart3 size={20} />
-            {sidebarOpen && <span>Relatórios</span>}
-          </button>
-        </nav>
-
-        <div className="p-4 border-t border-blue-700">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center">
-              <Users size={20} />
+        <div class="stats">
+            <div class="stat-card">
+                <div class="number" id="totalEventos">0</div>
+                <div class="label">Total de Eventos</div>
             </div>
-            {sidebarOpen && (
-              <div className="flex-1">
-                <p className="text-sm font-medium">Usuário Admin</p>
-                <p className="text-xs text-blue-200">Secretaria de Cultura</p>
-              </div>
-            )}
-          </div>
+            <div class="stat-card">
+                <div class="number" id="eventosAtivos">0</div>
+                <div class="label">Eventos Ativos</div>
+            </div>
+            <div class="stat-card">
+                <div class="number" id="eventosCancelados">0</div>
+                <div class="label">Cancelados</div>
+            </div>
+            <div class="stat-card">
+                <div class="number" id="proximoEvento">-</div>
+                <div class="label">Próximo Evento</div>
+            </div>
         </div>
-      </div>
 
-      {/* Conteúdo Principal */}
-      <div className="flex-1 flex flex-col">
-        {/* Header */}
-        <header className="bg-white border-b border-gray-200 px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-2xl font-bold text-gray-800">
-                {activeTab === 'dashboard' && 'Dashboard'}
-                {activeTab === 'eventos' && 'Gestão de Eventos'}
-                {activeTab === 'calendario' && 'Calendário de Eventos'}
-                {activeTab === 'relatorios' && 'Relatórios'}
-              </h2>
-              <p className="text-gray-600 text-sm">Programação Cultural de São Bernardo do Campo</p>
+        <div class="controls">
+            <div class="search-box">
+                <input type="text" id="searchInput" placeholder="🔍 Buscar por nome, local, responsável...">
             </div>
-            <div className="flex items-center gap-4">
-              <div className="relative">
-                <Bell size={20} className="text-gray-600 cursor-pointer" />
-                {notificacoes > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">
-                    {notificacoes}
-                  </span>
-                )}
-              </div>
-              {activeTab === 'eventos' && (
-                <button
-                  onClick={() => abrirModal('novo')}
-                  className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition"
-                >
-                  <Plus size={20} />
-                  Novo Evento
-                </button>
-              )}
-            </div>
-          </div>
-        </header>
+            
+            <select id="statusFilter">
+                <option value="">Todos os Status</option>
+                <option value="ativo">Ativo</option>
+                <option value="cancelado">Cancelado</option>
+                <option value="mudou a data">Mudou a data</option>
+            </select>
 
-        {/* Conteúdo */}
-        <main className="flex-1 p-6 overflow-auto">
-          {/* Dashboard */}
-          {activeTab === 'dashboard' && (
-            <div>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
-                <div className="bg-white rounded-lg shadow p-6 border-l-4 border-blue-500">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-gray-600 text-sm">Total de Eventos</p>
-                      <p className="text-3xl font-bold text-gray-800">{stats.total}</p>
-                    </div>
-                    <div className="bg-blue-100 p-3 rounded-full">
-                      <Calendar className="text-blue-600" size={24} />
-                    </div>
-                  </div>
-                </div>
+            <select id="localFilter">
+                <option value="">Todos os Locais</option>
+            </select>
 
-                <div className="bg-white rounded-lg shadow p-6 border-l-4 border-green-500">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-gray-600 text-sm">Aprovados</p>
-                      <p className="text-3xl font-bold text-gray-800">{stats.aprovados}</p>
-                    </div>
-                    <div className="bg-green-100 p-3 rounded-full">
-                      <CheckCircle className="text-green-600" size={24} />
-                    </div>
-                  </div>
-                </div>
+            <button class="btn btn-primary" onclick="limparFiltros()">Limpar Filtros</button>
+            <button class="btn btn-primary" onclick="pularParaHoje()">📍 Ir para Hoje</button>
+        </div>
 
-                <div className="bg-white rounded-lg shadow p-6 border-l-4 border-yellow-500">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-gray-600 text-sm">Em Análise</p>
-                      <p className="text-3xl font-bold text-gray-800">{stats.emAnalise}</p>
-                    </div>
-                    <div className="bg-yellow-100 p-3 rounded-full">
-                      <AlertCircle className="text-yellow-600" size={24} />
-                    </div>
-                  </div>
-                </div>
-
-                <div className="bg-white rounded-lg shadow p-6 border-l-4 border-purple-500">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-gray-600 text-sm">Concluídos</p>
-                      <p className="text-3xl font-bold text-gray-800">{stats.concluidos}</p>
-                    </div>
-                    <div className="bg-purple-100 p-3 rounded-full">
-                      <CheckCircle className="text-purple-600" size={24} />
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div className="bg-white rounded-lg shadow p-6">
-                  <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
-                    <Clock size={20} />
-                    Próximos Eventos
-                  </h3>
-                  <div className="space-y-3">
-                    {eventos.filter(e => e.status !== 'concluído' && e.status !== 'cancelado').slice(0, 5).map(evento => (
-                      <div key={evento.id} className="border-l-4 border-blue-500 pl-4 py-2">
-                        <p className="font-medium text-gray-800">{evento.nome}</p>
-                        <div className="flex items-center gap-4 text-sm text-gray-600 mt-1">
-                          <span>{new Date(evento.dataInicio).toLocaleDateString('pt-BR')}</span>
-                          <span>{evento.local}</span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="bg-white rounded-lg shadow p-6">
-                  <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
-                    <AlertCircle size={20} />
-                    Pendências
-                  </h3>
-                  <div className="space-y-3">
-                    {eventos.filter(e => e.setor.apoio === 'pendente' || e.setor.divulgacao === 'pendente' || e.setor.contratos === 'pendente').map(evento => (
-                      <div key={evento.id} className="border-l-4 border-yellow-500 pl-4 py-2">
-                        <p className="font-medium text-gray-800">{evento.nome}</p>
-                        <div className="flex gap-2 mt-2">
-                          {evento.setor.apoio === 'pendente' && (
-                            <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded">Apoio</span>
-                          )}
-                          {evento.setor.divulgacao === 'pendente' && (
-                            <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded">Divulgação</span>
-                          )}
-                          {evento.setor.contratos === 'pendente' && (
-                            <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded">Contratos</span>
-                          )}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Lista de Eventos */}
-          {activeTab === 'eventos' && (
-            <div>
-              {/* Filtros */}
-              <div className="bg-white rounded-lg shadow p-4 mb-6">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Status</label>
-                    <select
-                      value={filtros.status}
-                      onChange={(e) => setFiltros({ ...filtros, status: e.target.value })}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2"
-                    >
-                      <option value="todos">Todos</option>
-                      <option value="em análise">Em Análise</option>
-                      <option value="aprovado">Aprovado</option>
-                      <option value="concluído">Concluído</option>
-                      <option value="cancelado">Cancelado</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Local</label>
-                    <select
-                      value={filtros.local}
-                      onChange={(e) => setFiltros({ ...filtros, local: e.target.value })}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2"
-                    >
-                      <option value="todos">Todos</option>
-                      {locaisDisponiveis.map(local => (
-                        <option key={local} value={local}>{local}</option>
-                      ))}
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Buscar</label>
-                    <div className="relative">
-                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
-                      <input
-                        type="text"
-                        placeholder="Buscar evento..."
-                        className="w-full border border-gray-300 rounded-lg pl-10 pr-3 py-2"
-                      />
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Tabela de Eventos */}
-              <div className="bg-white rounded-lg shadow overflow-hidden">
-                <table className="w-full">
-                  <thead className="bg-gray-50 border-b border-gray-200">
+        <div class="table-container">
+            <table id="eventosTable">
+                <thead>
                     <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Evento</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Local</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Data</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Setores</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Ações</th>
+                        <th>Data</th>
+                        <th>Evento</th>
+                        <th>Local</th>
+                        <th>Horário</th>
+                        <th>Status</th>
+                        <th>Responsável</th>
+                        <th>Solicitante</th>
                     </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-200">
-                    {eventosFiltrados.map(evento => {
-                      const StatusIcon = statusConfig[evento.status]?.icon || AlertCircle;
-                      return (
-                        <tr key={evento.id} className="hover:bg-gray-50">
-                          <td className="px-6 py-4">
-                            <div>
-                              <p className="font-medium text-gray-900">{evento.nome}</p>
-                              <p className="text-sm text-gray-500">{evento.solicitante}</p>
-                            </div>
-                          </td>
-                          <td className="px-6 py-4 text-sm text-gray-600">{evento.local}</td>
-                          <td className="px-6 py-4 text-sm text-gray-600">
-                            {new Date(evento.dataInicio).toLocaleDateString('pt-BR')}
-                          </td>
-                          <td className="px-6 py-4">
-                            <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium ${statusConfig[evento.status]?.cor}`}>
-                              <StatusIcon size={16} />
-                              {evento.status}
-                            </span>
-                          </td>
-                          <td className="px-6 py-4">
-                            <div className="flex gap-1">
-                              <span className={`w-2 h-2 rounded-full ${evento.setor.apoio === 'aprovado' ? 'bg-green-500' : evento.setor.apoio === 'em análise' ? 'bg-yellow-500' : 'bg-gray-300'}`} title="Apoio"></span>
-                              <span className={`w-2 h-2 rounded-full ${evento.setor.divulgacao === 'aprovado' ? 'bg-green-500' : evento.setor.divulgacao === 'em análise' ? 'bg-yellow-500' : 'bg-gray-300'}`} title="Divulgação"></span>
-                              <span className={`w-2 h-2 rounded-full ${evento.setor.contratos === 'aprovado' ? 'bg-green-500' : evento.setor.contratos === 'em análise' ? 'bg-yellow-500' : 'bg-gray-300'}`} title="Contratos"></span>
-                            </div>
-                          </td>
-                          <td className="px-6 py-4">
-                            <div className="flex gap-2">
-                              <button
-                                onClick={() => abrirModal('visualizar', evento)}
-                                className="text-blue-600 hover:text-blue-800"
-                                title="Visualizar"
-                              >
-                                <Eye size={18} />
-                              </button>
-                              <button
-                                onClick={() => abrirModal('editar', evento)}
-                                className="text-green-600 hover:text-green-800"
-                                title="Editar"
-                              >
-                                <Edit size={18} />
-                              </button>
-                              <button
-                                onClick={() => excluirEvento(evento.id)}
-                                className="text-red-600 hover:text-red-800"
-                                title="Excluir"
-                              >
-                                <Trash2 size={18} />
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
+                </thead>
+                <tbody id="eventosBody">
+                </tbody>
+            </table>
+            <div id="emptyState" class="empty-state" style="display: none;">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <h3>Nenhum evento encontrado</h3>
+                <p>Tente ajustar os filtros de busca</p>
             </div>
-          )}
+        </div>
+    </div>
 
-          {/* Calendário */}
-          {activeTab === 'calendario' && (
-            <div className="bg-white rounded-lg shadow p-6">
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="text-xl font-bold text-gray-800">Janeiro 2025</h3>
-                <div className="flex gap-2">
-                  <button className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">Anterior</button>
-                  <button className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">Próximo</button>
-                </div>
-              </div>
-              <div className="grid grid-cols-7 gap-2">
-                {['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'].map(dia => (
-                  <div key={dia} className="text-center font-medium text-gray-600 py-2">{dia}</div>
-                ))}
-                {Array.from({ length: 31 }, (_, i) => i + 1).map(dia => {
-                  const eventoDia = eventos.find(e => new Date(e.dataInicio).getDate() === dia);
-                  return (
-                    <div key={dia} className={`border rounded p-2 h-20 ${eventoDia ? 'bg-blue-50 border-blue-200' : 'border-gray-200'}`}>
-                      <div className="font-medium text-sm text-gray-700">{dia}</div>
-                      {eventoDia && (
-                        <div className="text-xs text-blue-600 mt-1 truncate">{eventoDia.nome}</div>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          )}
+    <script>
+        const eventos = [
+            {data: '2026-01-07', nome: 'Ensaio: Mulheres do ABC, o Bloco', local: 'TCB - Teatro Cacilda Becker', inicio: '13:00', fim: '18:00', status: 'ativo', responsavel: 'Nadia', solicitante: 'Fabio', descricao: 'Ensaio do Bloco Mulheres do ABC'},
+            {data: '2026-01-08', nome: 'Ensaio: Mulheres do ABC, o Bloco', local: 'TCB - Teatro Cacilda Becker', inicio: '13:00', fim: '18:00', status: 'ativo', responsavel: 'Nadia', solicitante: 'Fabio', descricao: 'Ensaio do Bloco Mulheres do ABC'},
+            {data: '2026-01-10', nome: 'Ensaio: Mulheres do ABC, o Bloco', local: 'TCB - Teatro Cacilda Becker', inicio: '13:00', fim: '18:00', status: 'ativo', responsavel: 'Nádia', solicitante: 'Fabio', descricao: 'Ensaio do Bloco Mulheres do ABC'},
+            {data: '2026-01-10', nome: 'Lançamento de livro - Negro no para-brisa de Sallie', local: 'BML - Biblioteca Pública Municipal Monteiro Lobato', inicio: '14:00', fim: '16:00', status: 'ativo', responsavel: 'Sallie', solicitante: 'Mauren', descricao: 'Lançamento de livro'},
+            {data: '2026-01-11', nome: 'Ensaio: Mulheres do ABC, o Bloco', local: 'TCB - Teatro Cacilda Becker', inicio: '13:00', fim: '18:00', status: 'ativo', responsavel: 'Nádia', solicitante: 'Fabio', descricao: 'Ensaio do Bloco Mulheres do ABC'},
+            {data: '2026-01-12', nome: 'GAPI - Escola de educação especial de ensino Infantil e fundamental', local: 'BML - Biblioteca Pública Municipal Monteiro Lobato', inicio: '09:00', fim: '18:00', status: 'ativo', responsavel: 'GAPI', solicitante: 'mauren', descricao: 'FORMAÇÃO CONTINUADA E PLANEJAMENTO ESTRATEGICO'},
+            {data: '2026-01-16', nome: 'Fernando Pedrosa em São Bernardo do Campo/SP | Xaveca a Plateia e Bebe Vinho', local: 'TLG - Teatro Lauro Gomes', inicio: '21:30', fim: '22:40', status: 'ativo', responsavel: 'Ítalo Lima Gusso', solicitante: 'Fernando Silva', descricao: 'Show de humor'},
+            {data: '2026-01-17', nome: 'Cessão de espaço - Gabinete Vereador Jorge Araujo', local: 'BML - Biblioteca Pública Municipal Monteiro Lobato', inicio: '13:00', fim: '16:00', status: 'ativo', responsavel: 'Jorge Araujo', solicitante: 'Mauren', descricao: 'Cessão de espaço'},
+            {data: '2026-01-17', nome: 'ABBA + BEE GEES - " ENCONTRO "', local: 'TLG - Teatro Lauro Gomes', inicio: '20:00', fim: '22:00', status: 'ativo', responsavel: 'Wellington Anthony', solicitante: 'Fernando Silva', descricao: 'Espetáculo musical'},
+            {data: '2026-01-18', nome: 'Heroinas do KPOP', local: 'TLG - Teatro Lauro Gomes', inicio: '15:00', fim: '16:30', status: 'ativo', responsavel: 'Dorival dos Santos Oliveira', solicitante: 'Fernando Silva', descricao: 'Espetáculo teatral'},
+            {data: '2026-01-24', nome: 'Ensaio: Mulheres do ABC, o Bloco', local: 'TCB - Teatro Cacilda Becker', inicio: '13:00', fim: '18:00', status: 'ativo', responsavel: 'Nádia', solicitante: 'Fabio', descricao: 'Ensaio do Bloco Mulheres do ABC'},
+            {data: '2026-01-24', nome: 'lançamento de livro: Espera - de Luca Paião', local: 'BML - Biblioteca Pública Municipal Monteiro Lobato', inicio: '14:00', fim: '16:00', status: 'ativo', responsavel: 'ucashenriquepaiao@gmail.com', solicitante: 'Lucas Paião', descricao: 'lançamento de livro de autor de sbc'},
+            {data: '2026-01-24', nome: 'Beatles 4Ever - O Sonho Não Acabou', local: 'TLG - Teatro Lauro Gomes', inicio: '20:00', fim: '22:00', status: 'ativo', responsavel: 'José Ricardo João Felicio', solicitante: 'Fernando Silva', descricao: 'Espetáculo musical'},
+            {data: '2026-01-25', nome: 'Ensaio: Mulheres do ABC, o Bloco', local: 'TCB - Teatro Cacilda Becker', inicio: '13:00', fim: '18:00', status: 'ativo', responsavel: 'Nadia', solicitante: 'Fabio', descricao: 'Ensaio do Bloco Mulheres do ABC'},
+            {data: '2026-01-25', nome: 'Candlelight - Concertos à Luz de Velas', local: 'TLG - Teatro Lauro Gomes', inicio: '17:00', fim: '22:00', status: 'ativo', responsavel: 'Isabella Tosta', solicitante: 'Fernando Silva', descricao: 'Espetáculo musical'},
+            {data: '2026-01-29', nome: 'ANTES E DEPOIS DO PLANTÃO', local: 'TLG - Teatro Lauro Gomes', inicio: '20:30', fim: '21:50', status: 'ativo', responsavel: 'GABRIEL LOPES', solicitante: 'Fernando Silva', descricao: 'Show de humor'},
+            {data: '2026-01-31', nome: 'Lançamento de livro - Publivando sem Editora de Sueli Costa', local: 'BML - Biblioteca Pública Municipal Monteiro Lobato', inicio: '14:00', fim: '16:00', status: 'ativo', responsavel: 'Sueli Costa', solicitante: 'Mauren', descricao: 'Lançamento de livro - Publicando sem editora'},
+            {data: '2026-01-31', nome: 'Sarau Infantil com Regina Kopernik', local: 'BML - Biblioteca Pública Municipal Monteiro Lobato', inicio: '14:00', fim: '16:00', status: 'ativo', responsavel: 'Regina Kopernik', solicitante: 'Mauren', descricao: 'Sarau'},
+            {data: '2026-01-31', nome: 'Improvável – Um espetáculo provavelmente bom!', local: 'TLG - Teatro Lauro Gomes', inicio: '21:00', fim: '22:20', status: 'ativo', responsavel: 'Wilton Lanzillo', solicitante: 'Fernando Silva', descricao: 'Show de humor'},
+            {data: '2026-02-01', nome: 'Beatles 4Ever Cartoon', local: 'TLG - Teatro Lauro Gomes', inicio: '16:00', fim: '17:20', status: 'ativo', responsavel: 'José Ricardo João Felicio', solicitante: 'Fernando Silva', descricao: 'Espetáculo musical'},
+            {data: '2026-02-06', nome: 'Thiago Ventura', local: 'TLG - Teatro Lauro Gomes', inicio: '20:30', fim: '22:00', status: 'ativo', responsavel: 'Wilton Lanzillo', solicitante: 'Fernando Silva', descricao: 'Show de humor'},
+            {data: '2026-02-07', nome: 'The Jury Experience — Morte pela IA: quem paga o preço?', local: 'TLG - Teatro Lauro Gomes', inicio: '19:00', fim: '20:15', status: 'ativo', responsavel: 'Guilherme Mardegan', solicitante: 'Fernando Silva', descricao: 'Espetáculo teatral'},
+            {data: '2026-02-14', nome: 'Carnaval Criançativa', local: 'CCT - Centro Cultural Lázaro Pinto de Azevedo', inicio: '14:00', fim: '17:00', status: 'ativo', responsavel: 'Alex Silva', solicitante: 'Rogério', descricao: 'Matinê de Carnaval para a criançada e toda a família se divertir'},
+            {data: '2026-02-20', nome: 'Exposição: EURECA - um ABC para o Brasil', local: 'Pinacoteca de São Bernardo do Campo', inicio: '19:00', fim: '22:00', status: 'mudou a data', responsavel: 'Weber', solicitante: 'Geisa / Camila', descricao: 'Exposição itinerante que retrata os 22 anos de história do Bloco EURECA'},
+        ];
 
-          {/* Relatórios */}
-          {activeTab === 'relatorios' && (
-            <div className="space-y-6">
-              <div className="bg-white rounded-lg shadow p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-bold text-gray-800">Gerar Relatório</h3>
-                  <button className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center gap-2">
-                    <Download size={20} />
-                    Exportar Excel
-                  </button>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Período</label>
-                    <input type="date" className="w-full border border-gray-300 rounded-lg px-3 py-2" />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Até</label>
-                    <input type="date" className="w-full border border-gray-300 rounded-lg px-3 py-2" />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Tipo</label>
-                    <select className="w-full border border-gray-300 rounded-lg px-3 py-2">
-                      <option>Todos os Eventos</option>
-                      <option>Por Status</option>
-                      <option>Por Local</option>
-                      <option>Público Alcançado</option>
-                    </select>
-                  </div>
-                </div>
-              </div>
+        let eventosFiltrados = [...eventos];
 
-              <div className="bg-white rounded-lg shadow p-6">
-                <h3 className="text-lg font-bold text-gray-800 mb-4">Estatísticas do Período</h3>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div className="border rounded-lg p-4">
-                    <p className="text-gray-600 text-sm mb-2">Total de Eventos</p>
-                    <p className="text-3xl font-bold text-blue-600">{eventos.length}</p>
-                  </div>
-                  <div className="border rounded-lg p-4">
-                    <p className="text-gray-600 text-sm mb-2">Público Total</p>
-                    <p className="text-3xl font-bold text-green-600">
-                      {eventos.reduce((sum, e) => sum + e.publicoAlcancado, 0)}
-                    </p>
-                  </div>
-                  <div className="border rounded-lg p-4">
-                    <p className="text-gray-600 text-sm mb-
+        function formatarData(dataStr) {
+            const [ano, mes, dia] = dataStr.split('-');
+            return `${dia}/${mes}/${ano}`;
+        }
+
+        function renderizarEventos() {
+            const tbody = document.getElementById('eventosBody');
+            const emptyState = document.getElementById('emptyState');
+            
+            if (eventosFiltrados.length === 0) {
+                tbody.innerHTML = '';
+                emptyState.style.display = 'block';
+                return;
+            }
+
+            emptyState.style.display = 'none';
+            
+            tbody.innerHTML = eventosFiltrados.map(evento => `
+                <tr>
+                    <td class="date-cell">${formatarData(evento.data)}</td>
+                    <td><strong>${evento.nome}</strong><br><small style="color: #6c757d;">${evento.descricao}</small></td>
+                    <td><span class="local-badge">${evento.local}</span></td>
+                    <td>${evento.inicio} - ${evento.fim}</td>
+                    <td><span class="status-badge status-${evento.status.replace(' ', '-')}">${evento.status.toUpperCase()}</span></td>
+                    <td>${evento.responsavel}</td>
+                    <td>${evento.solicitante}</td>
+                </tr>
+            `).join('');
+        }
+
+        function atualizarEstatisticas() {
+            document.getElementById('totalEventos').textContent = eventos.length;
+            document.getElementById('eventosAtivos').textContent = eventos.filter(e => e.status === 'ativo').length;
+            document.getElementById('eventosCancelados').textContent = eventos.filter(e => e.status === 'cancelado').length;
+            
+            const hoje = new Date();
+            const proximoEvento = eventos.find(e => new Date(e.data) >= hoje);
+            if (proximoEvento) {
+                const dias = Math.ceil((new Date(proximoEvento.data) - hoje) / (1000 * 60 * 60 * 24));
+                document.getElementById('proximoEvento').textContent = dias === 0 ? 'HOJE' : `${dias}d`;
+            }
+        }
+
+        function popularLocais() {
+            const locais = [...new Set(eventos.map(e => e.local))].sort();
+            const select = document.getElementById('localFilter');
+            locais.forEach(local => {
+                const option = document.createElement('option');
+                option.value = local;
+                option.textContent = local;
+                select.appendChild(option);
+            });
+        }
+
+        function aplicarFiltros() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const statusFilter = document.getElementById('statusFilter').value;
+            const localFilter = document.getElementById('localFilter').value;
+
+            eventosFiltrados = eventos.filter(evento => {
+                const matchSearch = !searchTerm || 
+                    evento.nome.toLowerCase().includes(searchTerm) ||
+                    evento.local.toLowerCase().includes(searchTerm) ||
+                    evento.responsavel.toLowerCase().includes(searchTerm) ||
+                    evento.solicitante.toLowerCase().includes(searchTerm);
+
+                const matchStatus = !statusFilter || evento.status === statusFilter;
+                const matchLocal = !localFilter || evento.local === localFilter;
+
+                return matchSearch && matchStatus && matchLocal;
+            });
+
+            renderizarEventos();
+        }
+
+        function limparFiltros() {
+            document.getElementById('searchInput').value = '';
+            document.getElementById('statusFilter').value = '';
+            document.getElementById('localFilter').value = '';
+            aplicarFiltros();
+        }
+
+        function pularParaHoje() {
+            const hoje = new Date();
+            const tbody = document.getElementById('eventosBody');
+            
+            for (let i = 0; i < eventosFiltrados.length; i++) {
+                const eventoData = new Date(eventosFiltrados[i].data);
+                if (eventoData >= hoje) {
+                    tbody.children[i]?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    tbody.children[i]?.classList.add('highlight');
+                    setTimeout(() => tbody.children[i]?.classList.remove('highlight'), 2000);
+                    break;
+                }
+            }
+        }
+
+        document.getElementById('searchInput').addEventListener('input', aplicarFiltros);
+        document.getElementById('statusFilter').addEventListener('change', aplicarFiltros);
+        document.getElementById('localFilter').addEventListener('change', aplicarFiltros);
+
+        popularLocais();
+        atualizarEstatisticas();
+        renderizarEventos();
+    </script>
+</body>
+</html>
