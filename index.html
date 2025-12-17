@@ -1312,11 +1312,133 @@
             setupFilters();
         });
         
-        const API_URL = "SUA_URL_DO_APPS_SCRIPT";
+  <section id="secaoApoio" class="tab-content">
 
-        async function initializeData() {
-            const response = await fetch(API_URL);
-            eventos = await response.json();
-            renderDashboard();
-            renderEventos();
-        }
+  <h3>Ficha de Apoio</h3>
+  <div class="form-group">
+    <label>Número da Ficha</label>
+    <input type="text" id="apoio_ficha_numero">
+  </div>
+  <div class="form-group">
+    <label>Data do Recebimento</label>
+    <input type="date" id="apoio_ficha_data">
+  </div>
+
+  <h3>Controle de Memorandos – Secretarias</h3>
+  <div class="form-grid">
+    <div>
+      <label>Nº Memorando</label>
+      <input type="text" id="apoio_memo_numero">
+    </div>
+    <div>
+      <label>Data de Envio</label>
+      <input type="date" id="apoio_memo_data">
+    </div>
+  </div>
+
+  <div class="checkbox-group">
+    <label><input type="checkbox" id="apoio_resp_saude"> Resp. SS – Saúde</label>
+    <label><input type="checkbox" id="apoio_resp_gcm"> Resp. SESEG – GCM</label>
+    <label><input type="checkbox" id="apoio_resp_transito"> Resp. STMI – Trânsito</label>
+    <label><input type="checkbox" id="apoio_resp_eletrica"> Resp. SU – Elétrica</label>
+    <label><input type="checkbox" id="apoio_resp_espaco"> Resp. SU – Espaço</label>
+  </div>
+
+  <h3>Demais Secretarias / Instituições Parceiras</h3>
+  <div class="form-group">
+    <label>Nº Memorando</label>
+    <input type="text" id="apoio_parceiros_numero">
+  </div>
+  <div class="form-group">
+    <label>Observação</label>
+    <textarea id="apoio_parceiros_obs"></textarea>
+  </div>
+  <div class="form-grid">
+    <div>
+      <label>Data de Envio</label>
+      <input type="date" id="apoio_parceiros_envio">
+    </div>
+    <div>
+      <label>Data de Retorno</label>
+      <input type="date" id="apoio_parceiros_retorno">
+    </div>
+  </div>
+
+  <h3>Cancelamento</h3>
+  <div class="form-group">
+    <label>Nº Memorando</label>
+    <input type="text" id="apoio_cancelamento_numero">
+  </div>
+  <div class="form-group">
+    <label>Data de Envio</label>
+    <input type="date" id="apoio_cancelamento_data">
+  </div>
+
+  <h3>Observações</h3>
+  <textarea id="apoio_observacoes"></textarea>
+
+</section>
+
+
+        const API_URL = "https://script.google.com/u/0/home/projects/1uWS6pVqf4TEsbzzal_ZVBfcWeulqYwKEuN3CVu8hk2_zGTrrkDmflSNz/edit";
+let eventos = [];
+
+// Inicialização
+document.addEventListener('DOMContentLoaded', function () {
+    initializeData();
+    populateSelects();
+    setupFilters();
+});
+
+async function initializeData() {
+    const response = await fetch(API_URL);
+    eventos = await response.json();
+    renderDashboard();
+    renderEventos();
+}
+
+        async function saveEvent() {
+
+    const evento = {
+        nomeProposta: document.getElementById("nomeProposta").value,
+        dataEvento: document.getElementById("dataEvento").value,
+        dataCadastro: new Date().toISOString().split("T")[0],
+        origemEvento: document.getElementById("origemEvento").value,
+        local: document.getElementById("local").value,
+        inicio: document.getElementById("inicio").value,
+        fim: document.getElementById("fim").value,
+        status: document.getElementById("status").value,
+        descricao: document.getElementById("descricao").value,
+        publicoAlcancado: document.getElementById("publico").value,
+
+        // SEÇÃO DE APOIO
+        apoio_ficha_numero: document.getElementById("apoio_ficha_numero").value,
+        apoio_ficha_data: document.getElementById("apoio_ficha_data").value,
+
+        apoio_memo_numero: document.getElementById("apoio_memo_numero").value,
+        apoio_memo_data: document.getElementById("apoio_memo_data").value,
+        apoio_resp_saude: document.getElementById("apoio_resp_saude").checked,
+        apoio_resp_gcm: document.getElementById("apoio_resp_gcm").checked,
+        apoio_resp_transito: document.getElementById("apoio_resp_transito").checked,
+        apoio_resp_eletrica: document.getElementById("apoio_resp_eletrica").checked,
+        apoio_resp_espaco: document.getElementById("apoio_resp_espaco").checked,
+
+        apoio_parceiros_numero: document.getElementById("apoio_parceiros_numero").value,
+        apoio_parceiros_obs: document.getElementById("apoio_parceiros_obs").value,
+        apoio_parceiros_envio: document.getElementById("apoio_parceiros_envio").value,
+        apoio_parceiros_retorno: document.getElementById("apoio_parceiros_retorno").value,
+
+        apoio_cancelamento_numero: document.getElementById("apoio_cancelamento_numero").value,
+        apoio_cancelamento_data: document.getElementById("apoio_cancelamento_data").value,
+
+        apoio_observacoes: document.getElementById("apoio_observacoes").value
+    };
+
+    await fetch(API_URL, {
+        method: "POST",
+        body: JSON.stringify(evento)
+    });
+
+    closeModal();
+    initializeData();
+}
