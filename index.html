@@ -743,8 +743,8 @@
                 </div>
             </div>
         </div>
-
-        <!-- Content -->
+		
+		<!-- Content -->
         <div class="content" id="contentArea">
             <!-- Dashboard Content -->
             <div id="dashboardContent">
@@ -814,6 +814,32 @@
                             </div>
                         </div>
                     </div>
+					<div class="stat-card pink">
+                        <div class="stat-card-content">
+                            <div>
+                                <div class="stat-number" id="statData">0</div>
+                                <div class="stat-label">Alterou Data</div>
+                            </div>
+                            <div class="stat-icon">
+                                <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+					<div class="stat-card gray">
+                        <div class="stat-card-content">
+                            <div>
+                                <div class="stat-number" id="statLocal">0</div>
+                                <div class="stat-label">Alterou Local</div>
+                            </div>
+                            <div class="stat-icon">
+                                <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="dashboard-grid">
@@ -845,7 +871,8 @@
                                 <option value="aprovado">Aprovado</option>
                                 <option value="concluído">Concluído</option>
                                 <option value="cancelado">Cancelado</option>
-                                <option value="mudou a data">Mudou a Data</option>
+                                <option value="alterou a data">Alterou a Data</option>
+								<option value="alterou o local">Alterou o Local</option>
                             </select>
                         </div>
                         <div class="filter-group">
@@ -1286,649 +1313,218 @@
         </div>
     </div>
 
-    <script>
-        // Dados
-        let eventos = [];
-        let currentEventId = null;
-        let modalMode = 'new';
+<script>
+/* =========================
+   ESTADO GLOBAL
+========================= */
 
-        const locaisDisponiveis = [
-            'CCAA - Câmara de Cultura Antonino Assumpção',
-            'TLG - Teatro Lauro Gomes',
-            'TER - Teatro Elis Regina',
-            'TCB - Teatro Cacilda Becker',
-            'Pinacoteca de São Bernardo do Campo',
-            'BML - Biblioteca Pública Municipal Monteiro Lobato',
-            'CCT - Centro Cultural Lázaro Pinto de Azevedo',
-            'Parque da Juventude',
-            'Centro Cultural'
-        ];
+let currentTab = 'dashboard';
+let eventos = [];
+let editIndex = null;
 
-        // Inicialização
-        document.addEventListener('DOMContentLoaded', function() {
-            initializeData();
-            populateSelects();
-            renderDashboard();
-            setupFilters();
+/* =========================
+   NAVEGAÇÃO
+========================= */
+
+function showTab(tab) {
+    currentTab = tab;
+
+    document.getElementById('dashboardContent').classList.add('hidden');
+    document.getElementById('eventosContent').classList.add('hidden');
+    document.getElementById('calendarioContent').classList.add('hidden');
+    document.getElementById('relatoriosContent').classList.add('hidden');
+
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+
+    if (tab === 'dashboard') {
+        document.getElementById('dashboardContent').classList.remove('hidden');
+        document.getElementById('pageTitle').innerText = 'Dashboard';
+    }
+    if (tab === 'eventos') {
+        document.getElementById('eventosContent').classList.remove('hidden');
+        document.getElementById('pageTitle').innerText = 'Eventos';
+        renderTabela();
+    }
+    if (tab === 'calendario') {
+        document.getElementById('calendarioContent').classList.remove('hidden');
+        document.getElementById('pageTitle').innerText = 'Calendário';
+    }
+    if (tab === 'relatorios') {
+        document.getElementById('relatoriosContent').classList.remove('hidden');
+        document.getElementById('pageTitle').innerText = 'Relatórios';
+        atualizarRelatorios();
+    }
+
+    event.currentTarget.classList.add('active');
+}
+
+/* =========================
+   SIDEBAR
+========================= */
+
+function toggleSidebar() {
+    document.getElementById('sidebar').classList.toggle('collapsed');
+}
+
+/* =========================
+   MODAL
+========================= */
+
+function openModal() {
+    editIndex = null;
+    document.getElementById('modalTitle').innerText = 'Novo Evento';
+    document.getElementById('eventModal').classList.add('active');
+}
+
+function closeModal() {
+    document.getElementById('eventModal').classList.remove('active');
+    limparFormulario();
+}
+
+/* =========================
+   SEÇÕES
+========================= */
+
+function toggleSection(header) {
+    header.parentElement.classList.toggle('expanded');
+}
+
+/* =========================
+   FORMULÁRIO
+========================= */
+
+function limparFormulario() {
+    document.querySelectorAll('#eventModal input, #eventModal textarea, #eventModal select')
+        .forEach(el => {
+            if (el.type === 'checkbox') el.checked = false;
+            else el.value = '';
         });
+}
 
-        function initializeData() {
-            eventos = [
-                {
-                    id: 1,
-                    dataCadastro: '2024-09-14',
-                    nomeProposta: 'Sarau de Encerramento da Exposição Despacho da Cor e da Palavra',
-                    eventoChegouAtraves: 'LPG 2022',
-                    local: 'Pinacoteca de São Bernardo do Campo',
-                    dataInicio: '2025-01-25',
-                    dataFim: '2025-01-25',
-                    horarioInicio: '14:00',
-                    horarioFim: '17:00',
-                    previsaoObservacoes: 'Edital LPG 13',
-                    status: 'concluído',
-                    descricao: 'Atividade paralela do Projeto Despacho da Cor e da Palavra.',
-                    solicitante: 'Geisa/Camila',
-                    plantonista: 'Camila/Geisa',
-                    responsavelProposta: 'Luiz',
-                    contato: '96665-8041',
-                    publicoAlcancado: 135,
-                    termoCompromisso: true,
-                    fichaApoio: true,
-                    fichaDivulgacao: true,
-                    documentacaoContrato: true,
-                    divulgacaoRecebimento: '2024-09-26',
-                    divulgacaoImpressao: '2024-11-13',
-                    divulgacaoPublicacao: '2024-11-21',
-                    divulgacaoLink: '',
-                    contratosRecebimento: '2024-11-13',
-                    contratosEmpenho: '2024-11-18',
-                    contratosPagamento: '',
-                    fichaApoioNumero: 'MO 50570/2024',
-                    fichaApoioDataRecebimento: '2024-09-26',
-                    fichaApoioMemo: 'MO 50570/2024',
-                    fichaApoioDataEnvio: '2024-11-13',
-                    respSaude: '',
-                    respSeguranca: '',
-                    respTransito: '',
-                    respEletrica: '',
-                    respEspaco: '',
-                    setoresMemo: '',
-                    setoresObservacao: '',
-                    setoresDataEnvio: '',
-                    setoresDataResposta: '',
-                    cancelamento: '',
-                    observacoes: ''
-                },
-                {
-                    id: 2,
-                    dataCadastro: '2024-12-17',
-                    nomeProposta: 'Ocupação CCAA - 4 Pontos e 1 Pesponto',
-                    eventoChegouAtraves: '',
-                    local: 'CCAA - Câmara de Cultura Antonino Assumpção',
-                    dataInicio: '2025-01-21',
-                    dataFim: '2025-01-25',
-                    horarioInicio: '10:00',
-                    horarioFim: '18:00',
-                    previsaoObservacoes: '',
-                    status: 'concluído',
-                    descricao: 'Ocupação por coletivos de Economia Criativa',
-                    solicitante: 'Fabio',
-                    plantonista: '',
-                    responsavelProposta: 'Fabio',
-                    contato: '97999-9433',
-                    publicoAlcancado: 271,
-                    termoCompromisso: false,
-                    fichaApoio: false,
-                    fichaDivulgacao: false,
-                    documentacaoContrato: false,
-                    divulgacaoRecebimento: '',
-                    divulgacaoImpressao: '',
-                    divulgacaoPublicacao: '',
-                    divulgacaoLink: '',
-                    contratosRecebimento: '2025-01-10',
-                    contratosEmpenho: '',
-                    contratosPagamento: '',
-                    fichaApoioNumero: 'MO 899/2025',
-                    fichaApoioDataRecebimento: '2025-01-13',
-                    fichaApoioMemo: 'MO 899/2025',
-                    fichaApoioDataEnvio: '2025-01-18',
-                    respSaude: '',
-                    respSeguranca: '',
-                    respTransito: '',
-                    respEletrica: '',
-                    respEspaco: '',
-                    setoresMemo: '',
-                    setoresObservacao: '',
-                    setoresDataEnvio: '2025-01-27',
-                    setoresDataResposta: '',
-                    cancelamento: '',
-                    observacoes: ''
-                },
-                {
-                    id: 3,
-                    dataCadastro: '2025-01-21',
-                    nomeProposta: 'Bruna Louise - Ela Tá Correndo Atrás',
-                    eventoChegouAtraves: '',
-                    local: 'TLG - Teatro Lauro Gomes',
-                    dataInicio: '2025-01-24',
-                    dataFim: '2025-01-24',
-                    horarioInicio: '19:00',
-                    horarioFim: '22:00',
-                    previsaoObservacoes: 'Montagem às 17:00. Duas apresentações 19 e 21H',
-                    status: 'concluído',
-                    descricao: 'Show de humor',
-                    solicitante: 'Fernando',
-                    plantonista: 'Equipe TLG',
-                    responsavelProposta: "Criativu's Produções e Entretenimento",
-                    contato: '11 - 988541807',
-                    publicoAlcancado: 0,
-                    termoCompromisso: false,
-                    fichaApoio: false,
-                    fichaDivulgacao: false,
-                    documentacaoContrato: false,
-                    divulgacaoRecebimento: '',
-                    divulgacaoImpressao: '',
-                    divulgacaoPublicacao: '',
-                    divulgacaoLink: '',
-                    contratosRecebimento: '2025-01-24',
-                    contratosEmpenho: '',
-                    contratosPagamento: '',
-                    fichaApoioNumero: 'MO 3141/2025',
-                    fichaApoioDataRecebimento: '2025-01-22',
-                    fichaApoioMemo: 'MO 3141/2025',
-                    fichaApoioDataEnvio: '2025-01-26',
-                    respSaude: '',
-                    respSeguranca: '',
-                    respTransito: '',
-                    respEletrica: '',
-                    respEspaco: '',
-                    setoresMemo: '',
-                    setoresObservacao: '',
-                    setoresDataEnvio: '2025-01-29',
-                    setoresDataResposta: '',
-                    cancelamento: '',
-                    observacoes: ''
-                },
-                {
-                    id: 4,
-                    dataCadastro: '2025-01-06',
-                    nomeProposta: 'Festival de Inverno 2025',
-                    eventoChegouAtraves: 'Proposta Direta',
-                    local: 'Parque da Juventude',
-                    dataInicio: '2025-07-15',
-                    dataFim: '2025-07-20',
-                    horarioInicio: '14:00',
-                    horarioFim: '22:00',
-                    previsaoObservacoes: 'Evento de grande porte',
-                    status: 'em análise',
-                    descricao: 'Festival cultural com múltiplas atividades',
-                    solicitante: 'Maria Silva',
-                    plantonista: 'João',
-                    responsavelProposta: 'Maria Silva',
-                    contato: '11 99999-8888',
-                    publicoAlcancado: 0,
-                    termoCompromisso: false,
-                    fichaApoio: false,
-                    fichaDivulgacao: false,
-                    documentacaoContrato: false,
-                    divulgacaoRecebimento: '',
-                    divulgacaoImpressao: '',
-                    divulgacaoPublicacao: '',
-                    divulgacaoLink: '',
-                    contratosRecebimento: '',
-                    contratosEmpenho: '',
-                    contratosPagamento: '',
-                    fichaApoioNumero: '',
-                    fichaApoioDataRecebimento: '',
-                    fichaApoioMemo: '',
-                    fichaApoioDataEnvio: '',
-                    respSaude: 'Pendente',
-                    respSeguranca: 'Pendente',
-                    respTransito: 'Pendente',
-                    respEletrica: 'Pendente',
-                    respEspaco: 'Pendente',
-                    setoresMemo: '',
-                    setoresObservacao: '',
-                    setoresDataEnvio: '',
-                    setoresDataResposta: '',
-                    cancelamento: '',
-                    observacoes: 'Aguardando análise dos setores'
-                }
-            ];
-        }
+function saveEvent() {
+    const evento = {
+        nome: document.getElementById('nomeProposta').value,
+        local: document.getElementById('local').value,
+        dataInicio: document.getElementById('dataInicio').value,
+        dataFim: document.getElementById('dataFim').value,
+        horarioInicio: document.getElementById('horarioInicio').value,
+        horarioFim: document.getElementById('horarioFim').value,
+        status: document.getElementById('status').value,
+        solicitante: document.getElementById('solicitante').value,
+        publico: Number(document.getElementById('publicoAlcancado').value || 0)
+    };
 
-        function populateSelects() {
-            const localSelect = document.getElementById('local');
-            const filterLocalSelect = document.getElementById('filterLocal');
-            
-            locaisDisponiveis.forEach(local => {
-                const option1 = document.createElement('option');
-                option1.value = local;
-                option1.textContent = local;
-                localSelect.appendChild(option1);
-                
-                const option2 = document.createElement('option');
-                option2.value = local;
-                option2.textContent = local;
-                filterLocalSelect.appendChild(option2);
-            });
-        }
+    if (!evento.nome || !evento.local || !evento.dataInicio) {
+        alert('Preencha os campos obrigatórios.');
+        return;
+    }
 
-        function setupFilters() {
-            ['filterBusca', 'filterStatus', 'filterLocal', 'filterDataInicio', 'filterDataFim'].forEach(id => {
-                document.getElementById(id)?.addEventListener('change', filterEventos);
-                document.getElementById(id)?.addEventListener('input', filterEventos);
-            });
-        }
+    if (editIndex !== null) {
+        eventos[editIndex] = evento;
+    } else {
+        eventos.push(evento);
+    }
 
-        // Navegação
-        function showTab(tab) {
-            // Atualizar menu
-            document.querySelectorAll('.nav-item').forEach(item => {
-                item.classList.remove('active');
-            });
-            event.currentTarget.classList.add('active');
+    closeModal();
+    atualizarDashboard();
+    renderTabela();
+}
 
-            // Esconder todos os conteúdos
-            document.querySelectorAll('[id$="Content"]').forEach(content => {
-                content.classList.add('hidden');
-            });
+/* =========================
+   TABELA
+========================= */
 
-            // Mostrar conteúdo específico
-            document.getElementById(tab + 'Content').classList.remove('hidden');
+function renderTabela() {
+    const tbody = document.getElementById('eventosTableBody');
+    tbody.innerHTML = '';
 
-            // Atualizar título
-            const titles = {
-                dashboard: 'Dashboard',
-                eventos: 'Gestão de Eventos',
-                calendario: 'Calendário de Eventos',
-                relatorios: 'Relatórios'
-            };
-            document.getElementById('pageTitle').textContent = titles[tab];
+    if (eventos.length === 0) {
+        document.getElementById('emptyState').classList.remove('hidden');
+        return;
+    }
 
-            // Mostrar/esconder botão novo evento
-            document.getElementById('btnNovoEvento').classList.toggle('hidden', tab !== 'eventos');
+    document.getElementById('emptyState').classList.add('hidden');
 
-            // Renderizar conteúdo específico
-            if (tab === 'dashboard') renderDashboard();
-            if (tab === 'eventos') renderEventos();
-            if (tab === 'calendario') renderCalendar();
-            if (tab === 'relatorios') renderRelatorios();
-        }
+    eventos.forEach((e, i) => {
+        const tr = document.createElement('tr');
 
-        function toggleSidebar() {
-            document.getElementById('sidebar').classList.toggle('collapsed');
-        }
+        tr.innerHTML = `
+            <td>${e.nome}</td>
+            <td>${e.local}</td>
+            <td>${e.dataInicio}</td>
+            <td>${e.horarioInicio || '-'}</td>
+            <td><span class="status-badge status-${e.status.replaceAll(' ', '-')}">${e.status}</span></td>
+            <td>${e.solicitante || '-'}</td>
+            <td>${e.publico}</td>
+            <td class="table-actions">
+                <button class="icon-btn blue" onclick="editarEvento(${i})">✏️</button>
+                <button class="icon-btn red" onclick="excluirEvento(${i})">🗑️</button>
+            </td>
+        `;
 
-        // Dashboard
-        function renderDashboard() {
-            const stats = {
-                total: eventos.length,
-                aprovados: eventos.filter(e => e.status === 'aprovado').length,
-                emAnalise: eventos.filter(e => e.status === 'em análise').length,
-                concluidos: eventos.filter(e => e.status === 'concluído').length,
-                cancelados: eventos.filter(e => e.status === 'cancelado').length
-            };
+        tbody.appendChild(tr);
+    });
+}
 
-            document.getElementById('statTotal').textContent = stats.total;
-            document.getElementById('statAprovados').textContent = stats.aprovados;
-            document.getElementById('statEmAnalise').textContent = stats.emAnalise;
-            document.getElementById('statConcluidos').textContent = stats.concluidos;
-            document.getElementById('statCancelados').textContent = stats.cancelados;
+function editarEvento(index) {
+    const e = eventos[index];
+    editIndex = index;
 
-            // Próximos eventos
-            const proximos = eventos
-                .filter(e => e.status !== 'concluído' && e.status !== 'cancelado')
-                .sort((a, b) => new Date(a.dataInicio) - new Date(b.dataInicio))
-                .slice(0, 5);
+    document.getElementById('nomeProposta').value = e.nome;
+    document.getElementById('local').value = e.local;
+    document.getElementById('dataInicio').value = e.dataInicio;
+    document.getElementById('dataFim').value = e.dataFim;
+    document.getElementById('horarioInicio').value = e.horarioInicio;
+    document.getElementById('horarioFim').value = e.horarioFim;
+    document.getElementById('status').value = e.status;
+    document.getElementById('solicitante').value = e.solicitante;
+    document.getElementById('publicoAlcancado').value = e.publico;
 
-            document.getElementById('proximosEventos').innerHTML = proximos.length > 0 ?
-                proximos.map(e => `
-                    <div class="event-item">
-                        <h4>${e.nomeProposta}</h4>
-                        <p>${formatDate(e.dataInicio)} • ${e.local}</p>
-                    </div>
-                `).join('') : '<p style="color: #6b7280;">Nenhum evento próximo</p>';
+    document.getElementById('modalTitle').innerText = 'Editar Evento';
+    document.getElementById('eventModal').classList.add('active');
+}
 
-            // Eventos em análise
-            const emAnalise = eventos.filter(e => e.status === 'em análise');
-            document.getElementById('eventosEmAnalise').innerHTML = emAnalise.length > 0 ?
-                emAnalise.map(e => `
-                    <div class="event-item" style="border-color: #f59e0b;">
-                        <h4>${e.nomeProposta}</h4>
-                        <p>${e.solicitante} • ${formatDate(e.dataInicio)}</p>
-                    </div>
-                `).join('') : '<p style="color: #6b7280;">Nenhum evento em análise</p>';
-        }
+function excluirEvento(index) {
+    if (confirm('Deseja excluir este evento?')) {
+        eventos.splice(index, 1);
+        renderTabela();
+        atualizarDashboard();
+    }
+}
 
-        // Eventos
-        function renderEventos() {
-            filterEventos();
-        }
+/* =========================
+   DASHBOARD
+========================= */
 
-        function filterEventos() {
-            const busca = document.getElementById('filterBusca')?.value.toLowerCase() || '';
-            const status = document.getElementById('filterStatus')?.value || '';
-            const local = document.getElementById('filterLocal')?.value || '';
-            const dataInicio = document.getElementById('filterDataInicio')?.value || '';
-            const dataFim = document.getElementById('filterDataFim')?.value || '';
+function atualizarDashboard() {
+    document.getElementById('statTotal').innerText = eventos.length;
+    document.getElementById('statAprovados').innerText = eventos.filter(e => e.status === 'aprovado').length;
+    document.getElementById('statEmAnalise').innerText = eventos.filter(e => e.status === 'em análise').length;
+    document.getElementById('statConcluidos').innerText = eventos.filter(e => e.status === 'concluído').length;
+    document.getElementById('statCancelados').innerText = eventos.filter(e => e.status === 'cancelado').length;
+}
 
-            const filtered = eventos.filter(evento => {
-                const buscaMatch = !busca || 
-                    evento.nomeProposta?.toLowerCase().includes(busca) ||
-                    evento.solicitante?.toLowerCase().includes(busca) ||
-                    evento.responsavelProposta?.toLowerCase().includes(busca);
-                
-                const statusMatch = !status || evento.status === status;
-                const localMatch = !local || evento.local === local;
-                
-                let dataMatch = true;
-                if (dataInicio && dataFim) {
-                    const eventoData = new Date(evento.dataInicio);
-                    const filtroInicio = new Date(dataInicio);
-                    const filtroFim = new Date(dataFim);
-                    dataMatch = eventoData >= filtroInicio && eventoData <= filtroFim;
-                }
-                
-                return buscaMatch && statusMatch && localMatch && dataMatch;
-            });
+/* =========================
+   RELATÓRIOS
+========================= */
 
-            const tbody = document.getElementById('eventosTableBody');
-            const emptyState = document.getElementById('emptyState');
+function atualizarRelatorios() {
+    const total = eventos.length;
+    const publico = eventos.reduce((s, e) => s + e.publico, 0);
+    const aprovados = eventos.filter(e => e.status === 'aprovado').length;
 
-            if (filtered.length === 0) {
-                tbody.innerHTML = '';
-                emptyState.classList.remove('hidden');
-            } else {
-                emptyState.classList.add('hidden');
-                tbody.innerHTML = filtered.map(evento => `
-                    <tr>
-                        <td>
-                            <strong>${evento.nomeProposta}</strong><br>
-                            <small style="color: #6b7280;">${evento.responsavelProposta || '-'}</small>
-                        </td>
-                        <td>${evento.local}</td>
-                        <td>${formatDate(evento.dataInicio)}${evento.dataFim !== evento.dataInicio ? ' até ' + formatDate(evento.dataFim) : ''}</td>
-                        <td>${evento.horarioInicio || '-'} - ${evento.horarioFim || '-'}</td>
-                        <td><span class="status-badge status-${evento.status.replace(/ /g, '-')}">${evento.status.toUpperCase()}</span></td>
-                        <td>${evento.solicitante || '-'}</td>
-                        <td>${evento.publicoAlcancado || '-'}</td>
-                        <td>
-                            <div class="table-actions">
-                                <button class="icon-btn blue" onclick="viewEvent(${evento.id})" title="Visualizar">
-                                    <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
-                                    </svg>
-                                </button>
-                                <button class="icon-btn green" onclick="editEvent(${evento.id})" title="Editar">
-                                    <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
-                                    </svg>
-                                </button>
-                                <button class="icon-btn red" onclick="deleteEvent(${evento.id})" title="Excluir">
-                                    <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-                                    </svg>
-                                </button>
-                            </div>
-                        </td>
-                    </tr>
-                `).join('');
-            }
-        }
+    document.getElementById('relTotal').innerText = total;
+    document.getElementById('relPublico').innerText = publico;
+    document.getElementById('relTaxa').innerText = total ? Math.round((aprovados / total) * 100) + '%' : '0%';
+    document.getElementById('relMedia').innerText = total ? Math.round(publico / total) : 0;
+}
 
-        function clearFilters() {
-            document.getElementById('filterBusca').value = '';
-            document.getElementById('filterStatus').value = '';
-            document.getElementById('filterLocal').value = '';
-            document.getElementById('filterDataInicio').value = '';
-            document.getElementById('filterDataFim').value = '';
-            filterEventos();
-        }
+/* =========================
+   INIT
+========================= */
 
-        // Calendário
-        function renderCalendar() {
-            const container = document.getElementById('calendarDays');
-            let html = '';
-            
-            for (let i = 1; i <= 31; i++) {
-                const eventosNoDia = eventos.filter(e => new Date(e.dataInicio).getDate() === i);
-                const hasEvents = eventosNoDia.length > 0;
-                
-                html += `
-                    <div class="calendar-day ${hasEvents ? 'has-events' : ''}">
-                        <div class="calendar-day-number">${i}</div>
-                        ${eventosNoDia.slice(0, 2).map(e => `
-                            <div class="calendar-event">${e.nomeProposta}</div>
-                        `).join('')}
-                        ${eventosNoDia.length > 2 ? `<div class="calendar-event">+${eventosNoDia.length - 2} mais</div>` : ''}
-                    </div>
-                `;
-            }
-            
-            container.innerHTML = html;
-        }
+document.addEventListener('DOMContentLoaded', () => {
+    atualizarDashboard();
+});
+</script>
 
-        // Relatórios
-        function renderRelatorios() {
-            document.getElementById('relTotal').textContent = eventos.length;
-            
-            const publicoTotal = eventos.reduce((sum, e) => sum + (e.publicoAlcancado || 0), 0);
-            document.getElementById('relPublico').textContent = publicoTotal.toLocaleString('pt-BR');
-            
-            const aprovados = eventos.filter(e => e.status === 'aprovado').length;
-            const taxa = eventos.length > 0 ? Math.round((aprovados / eventos.length) * 100) : 0;
-            document.getElementById('relTaxa').textContent = taxa + '%';
-            
-            const media = eventos.length > 0 ? Math.round(publicoTotal / eventos.length) : 0;
-            document.getElementById('relMedia').textContent = media;
-
-            // Eventos por local
-            const porLocal = {};
-            eventos.forEach(e => {
-                porLocal[e.local] = (porLocal[e.local] || 0) + 1;
-            });
-
-            const container = document.getElementById('eventosPorLocal');
-            container.innerHTML = Object.entries(porLocal).map(([local, count]) => {
-                const percent = (count / eventos.length) * 100;
-                return `
-                    <div style="margin-bottom: 16px;">
-                        <div style="display: flex; justify-between; margin-bottom: 4px;">
-                            <span style="font-size: 14px; color: #374151;">${local}</span>
-                            <span style="font-size: 14px; color: #6b7280;">${count} eventos (${percent.toFixed(1)}%)</span>
-                        </div>
-                        <div style="width: 100%; background: #e5e7eb; border-radius: 4px; height: 8px;">
-                            <div style="width: ${percent}%; background: #2563eb; border-radius: 4px; height: 8px;"></div>
-                        </div>
-                    </div>
-                `;
-            }).join('');
-        }
-
-        // Modal
-        function openModal(mode, eventId = null) {
-            modalMode = mode;
-            currentEventId = eventId;
-            
-            const modal = document.getElementById('eventModal');
-            const modalTitle = document.getElementById('modalTitle');
-            
-            if (mode === 'new') {
-                modalTitle.textContent = 'Novo Evento';
-                clearForm();
-                document.getElementById('dataCadastro').value = new Date().toISOString().split('T')[0];
-            } else if (mode === 'edit') {
-                modalTitle.textContent = 'Editar Evento';
-                loadEventToForm(eventId);
-            } else if (mode === 'view') {
-                modalTitle.textContent = 'Detalhes do Evento';
-                loadEventToForm(eventId);
-                disableForm();
-            }
-            
-            modal.classList.add('active');
-        }
-
-        function closeModal() {
-            document.getElementById('eventModal').classList.remove('active');
-            clearForm();
-            enableForm();
-        }
-
-        function saveEvent() {
-            const formData = getFormData();
-            
-            if (!formData.nomeProposta || !formData.local || !formData.dataInicio || !formData.dataFim) {
-                alert('Por favor, preencha todos os campos obrigatórios');
-                return;
-            }
-
-            if (modalMode === 'new') {
-                formData.id = Date.now();
-                eventos.push(formData);
-            } else if (modalMode === 'edit') {
-                const index = eventos.findIndex(e => e.id === currentEventId);
-                if (index !== -1) {
-                    eventos[index] = { ...formData, id: currentEventId };
-                }
-            }
-
-            closeModal();
-            renderDashboard();
-            renderEventos();
-            renderCalendar();
-            renderRelatorios();
-        }
-
-        function viewEvent(id) {
-            openModal('view', id);
-        }
-
-        function editEvent(id) {
-            openModal('edit', id);
-        }
-
-        function deleteEvent(id) {
-            if (confirm('Tem certeza que deseja excluir este evento?')) {
-                eventos = eventos.filter(e => e.id !== id);
-                renderDashboard();
-                renderEventos();
-                renderCalendar();
-                renderRelatorios();
-            }
-        }
-
-        // Form helpers
-        function getFormData() {
-            return {
-                dataCadastro: document.getElementById('dataCadastro').value,
-                nomeProposta: document.getElementById('nomeProposta').value,
-                eventoChegouAtraves: document.getElementById('eventoChegouAtraves').value,
-                local: document.getElementById('local').value,
-                dataInicio: document.getElementById('dataInicio').value,
-                dataFim: document.getElementById('dataFim').value,
-                horarioInicio: document.getElementById('horarioInicio').value,
-                horarioFim: document.getElementById('horarioFim').value,
-                previsaoObservacoes: document.getElementById('previsaoObservacoes').value,
-                status: document.getElementById('status').value,
-                descricao: document.getElementById('descricao').value,
-                solicitante: document.getElementById('solicitante').value,
-                plantonista: document.getElementById('plantonista').value,
-                responsavelProposta: document.getElementById('responsavelProposta').value,
-                contato: document.getElementById('contato').value,
-                publicoAlcancado: parseInt(document.getElementById('publicoAlcancado').value) || 0,
-                termoCompromisso: document.getElementById('termoCompromisso').checked,
-                fichaApoio: document.getElementById('fichaApoio').checked,
-                fichaDivulgacao: document.getElementById('fichaDivulgacao').checked,
-                documentacaoContrato: document.getElementById('documentacaoContrato').checked,
-                fichaApoioNumero: document.getElementById('fichaApoioNumero').value,
-                fichaApoioDataRecebimento: document.getElementById('fichaApoioDataRecebimento').value,
-                fichaApoioMemo: document.getElementById('fichaApoioMemo').value,
-                fichaApoioDataEnvio: document.getElementById('fichaApoioDataEnvio').value,
-                divulgacaoRecebimento: document.getElementById('divulgacaoRecebimento').value,
-                divulgacaoImpressao: document.getElementById('divulgacaoImpressao').value,
-                divulgacaoPublicacao: document.getElementById('divulgacaoPublicacao').value,
-                divulgacaoLink: document.getElementById('divulgacaoLink').value,
-                contratosRecebimento: document.getElementById('contratosRecebimento').value,
-                contratosEmpenho: document.getElementById('contratosEmpenho').value,
-                contratosPagamento: document.getElementById('contratosPagamento').value,
-                respSaude: document.getElementById('respSaude').value,
-                respSeguranca: document.getElementById('respSeguranca').value,
-                respTransito: document.getElementById('respTransito').value,
-                respEletrica: document.getElementById('respEletrica').value,
-                respEspaco: document.getElementById('respEspaco').value,
-                setoresMemo: document.getElementById('setoresMemo').value,
-                setoresDataEnvio: document.getElementById('setoresDataEnvio').value,
-                setoresDataResposta: document.getElementById('setoresDataResposta').value,
-                setoresObservacao: document.getElementById('setoresObservacao').value,
-                cancelamento: document.getElementById('cancelamento').value,
-                observacoes: document.getElementById('observacoes').value
-            };
-        }
-
-        function loadEventToForm(eventId) {
-            const evento = eventos.find(e => e.id === eventId);
-            if (!evento) return;
-
-            Object.keys(evento).forEach(key => {
-                const element = document.getElementById(key);
-                if (element) {
-                    if (element.type === 'checkbox') {
-                        element.checked = evento[key];
-                    } else {
-                        element.value = evento[key] || '';
-                    }
-                }
-            });
-        }
-
-        function clearForm() {
-            document.querySelectorAll('#eventModal input, #eventModal select, #eventModal textarea').forEach(el => {
-                if (el.type === 'checkbox') {
-                    el.checked = false;
-                } else {
-                    el.value = '';
-                }
-            });
-        }
-
-        function disableForm() {
-            document.querySelectorAll('#eventModal input, #eventModal select, #eventModal textarea').forEach(el => {
-                el.disabled = true;
-            });
-        }
-
-        function enableForm() {
-            document.querySelectorAll('#eventModal input, #eventModal select, #eventModal textarea').forEach(el => {
-                el.disabled = false;
-            });
-        }
-
-        // Utilities
-        function formatDate(dateStr) {
-            if (!dateStr) return '-';
-            const [year, month, day] = dateStr.split('-');
-            return `${day}/${month}/${year}`;
-        }
-
-        function toggleSection(header) {
-            const section = header.parentElement;
-            section.classList.toggle('expanded');
-        }
-
-        function exportToExcel() {
-            alert('Funcionalidade de exportação será implementada em breve!');
-        }
-    </script>
-</body>
-</html><div id="proximosEventos"></div>
-                    </div>
-                    <div class="card">
-                        <h3>
-                            <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                            </svg>
-                            Eventos em Análise
-                        </h3>
