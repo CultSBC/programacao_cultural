@@ -822,8 +822,9 @@
                             </div>
                             <div class="stat-icon">
                                 <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                                </svg>
+									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+									d="M12 8v4l3 3M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+									</svg>
                             </div>
                         </div>
                     </div>
@@ -1070,10 +1071,11 @@
                                 <label>Status</label>
                                 <select id="status">
                                     <option value="em análise">Em Análise</option>
-                                    <option value="aprovado">Aprovado</option>
-                                    <option value="concluído">Concluído</option>
-                                    <option value="cancelado">Cancelado</option>
-                                    <option value="mudou a data">Mudou a Data</option>
+									<option value="aprovado">Aprovado</option>
+									<option value="concluído">Concluído</option>
+									<option value="cancelado">Cancelado</option>
+									<option value="alterou a data">Alterou a Data</option>
+									<option value="alterou o local">Alterou o Local</option>
                                 </select>
                             </div>
                             <div class="form-group">
@@ -1323,6 +1325,69 @@ let eventos = [];
 let editIndex = null;
 
 /* =========================
+   LISTAS PADRÃO (INTERFACE)
+========================= */
+
+const LISTA_ORIGEM_EVENTO = [
+    "Secretaria de Governo",
+    "Secretaria de Cultura",
+    "Outras Secretarias",
+    "PNAB 2024",
+    "LPG 2022",
+    "PROAC",
+    "Cessão de Espaço",
+    "Particular (Preço Público)",
+    "Edital de Ocupação"
+];
+
+const LISTA_LOCAIS = [
+    "BAR - Biblioteca de Arte Ilva Aceto Maranesi",
+    "BEV - Biblioteca Pública Municipal Érico Veríssimo",
+    "BGR - Biblioteca Pública Municipal Guimarães Rosa",
+    "BMA - Biblioteca Pública Municipal Machado de Assis",
+    "BMB - Biblioteca Pública Municipal Manuel Bandeira",
+    "BML - Biblioteca Pública Municipal Monteiro Lobato",
+    "BMT - Biblioteca Pública Municipal Malba Tahan",
+    "CAV - Centro Audiovisual",
+    "CCCA - Centro Cultural Antonia Marçon Bonício",
+    "CCAA - Câmara de Cultura Antonino Assumpção",
+    "CCBBN - Centro Cultural Bairro Baeta Neves - Alexandre de Azevedo Marques Miguel",
+    "CCF - Centro Cultural Jácomo Guazzelli",
+    "CCT - Centro Cultural Lázaro Pinto de Azevedo",
+    "CLM - Centro Livre de Música",
+    "CMSBC - Centro de Memória de São Bernardo do Campo",
+    "CREC Paulicéia",
+    "CS/CRCP - Chácara Silvestre / Centro de Referência das Culturas Populares Tradicionais",
+    "DAJUV - Ações Ligadas à Juventude",
+    "EMAEI - Escola Municipal de Arte-Educação Integrada Professor Paulo Bugni",
+    "ETL - Espaço Troca Livro",
+    "Gibiteca Municipal Eugênio Colonese",
+    "Parque da Juventude Cidade Maróstica",
+    "Parque Engenheiro Salvador Arena",
+    "Pinacoteca de São Bernardo do Campo",
+    "Preservação da Memória",
+    "TAPA - Teatro Abílio Pereira de Almeida",
+    "TCB - Teatro Cacilda Becker",
+    "TER - Teatro Elis Regina",
+    "TLG - Teatro Lauro Gomes",
+    "TMP - Teatro Martins Pena"
+];
+
+function preencherSelect(id, lista) {
+    const select = document.getElementById(id);
+    if (!select) return;
+
+    select.innerHTML = '<option value="">Selecione</option>';
+    lista.forEach(item => {
+        const opt = document.createElement('option');
+        opt.value = item;
+        opt.textContent = item;
+        select.appendChild(opt);
+    });
+}
+
+
+/* =========================
    NAVEGAÇÃO
 ========================= */
 
@@ -1498,10 +1563,23 @@ function excluirEvento(index) {
 
 function atualizarDashboard() {
     document.getElementById('statTotal').innerText = eventos.length;
-    document.getElementById('statAprovados').innerText = eventos.filter(e => e.status === 'aprovado').length;
-    document.getElementById('statEmAnalise').innerText = eventos.filter(e => e.status === 'em análise').length;
-    document.getElementById('statConcluidos').innerText = eventos.filter(e => e.status === 'concluído').length;
-    document.getElementById('statCancelados').innerText = eventos.filter(e => e.status === 'cancelado').length;
+    document.getElementById('statAprovados').innerText =
+        eventos.filter(e => e.status === 'aprovado').length;
+
+    document.getElementById('statEmAnalise').innerText =
+        eventos.filter(e => e.status === 'em análise').length;
+
+    document.getElementById('statConcluidos').innerText =
+        eventos.filter(e => e.status === 'concluído').length;
+
+    document.getElementById('statCancelados').innerText =
+        eventos.filter(e => e.status === 'cancelado').length;
+
+    document.getElementById('statData').innerText =
+        eventos.filter(e => e.status === 'alterou a data').length;
+
+    document.getElementById('statLocal').innerText =
+        eventos.filter(e => e.status === 'alterou o local').length;
 }
 
 /* =========================
@@ -1524,7 +1602,10 @@ function atualizarRelatorios() {
 ========================= */
 
 document.addEventListener('DOMContentLoaded', () => {
+    preencherSelect('eventoChegouAtraves', LISTA_ORIGEM_EVENTO);
+    preencherSelect('local', LISTA_LOCAIS);
+    preencherSelect('filterLocal', LISTA_LOCAIS);
+
     atualizarDashboard();
 });
 </script>
-
