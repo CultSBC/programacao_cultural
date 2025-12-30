@@ -219,7 +219,7 @@
         .stat-card.red { border-color: #ef4444; }
 		.stat-card.pink { border-color: #f97316; }
 		.stat-card.gray { border-color: #374151; }
-		
+
         .stat-card-content {
             display: flex;
             justify-content: space-between;
@@ -934,28 +934,22 @@
             </div>
 
             <!-- Calendário Content -->
-            <div id="calendarioContent" class="hidden">
-                <div class="calendar">
-                    <div class="calendar-header">
-                        <h3>Janeiro 2026</h3>
-                        <div style="display: flex; gap: 8px;">
-                            <button class="btn btn-secondary">Anterior</button>
-                            <button class="btn btn-primary">Hoje</button>
-                            <button class="btn btn-secondary">Próximo</button>
-                        </div>
-                    </div>
-                    <div class="calendar-grid">
-                        <div class="calendar-day-header">Dom</div>
-                        <div class="calendar-day-header">Seg</div>
-                        <div class="calendar-day-header">Ter</div>
-                        <div class="calendar-day-header">Qua</div>
-                        <div class="calendar-day-header">Qui</div>
-                        <div class="calendar-day-header">Sex</div>
-                        <div class="calendar-day-header">Sáb</div>
-                        <div id="calendarDays"></div>
-                    </div>
-                </div>
-            </div>
+			<div id="calendarioContent" class="hidden">
+				<div class="calendar">
+					<div class="calendar-header">
+						<h3 id="calendarMonth">Janeiro 2026</h3>
+						<div style="display: flex; gap: 8px;">
+							<button class="btn btn-secondary" onclick="mudarVisualizacao()">
+								<span id="viewToggleText">Visualização Semanal</span>
+							</button>
+							<button class="btn btn-secondary" onclick="navegarCalendario(-1)">Anterior</button>
+							<button class="btn btn-primary" onclick="navegarCalendario(0)">Hoje</button>
+							<button class="btn btn-secondary" onclick="navegarCalendario(1)">Próximo</button>
+						</div>
+					</div>
+						<div id="calendarContainer"></div>
+				</div>
+			</div>
 
             <!-- Relatórios Content -->
             <div id="relatoriosContent" class="hidden">
@@ -1320,6 +1314,16 @@
     </div>
 
 <script>
+
+const API_URL = 'https://script.google.com/macros/s/AKfycbyYDvsvRyuOA69qj_Q90328oZyxqR2mcGOK91VOYZk2kzp7ibteVL1QakPsdGnRL1pv/exec';
+
+async function carregarEventos() {
+    const res = await fetch(API_URL);
+    eventos = await res.json();
+    atualizarDashboard();
+    renderTabela();
+}
+
 /* =========================
    ESTADO GLOBAL
 ========================= */
@@ -1395,7 +1399,7 @@ function preencherSelect(id, lista) {
    NAVEGAÇÃO
 ========================= */
 
-function showTab(tab) {
+function showTab(tab, el) {
     currentTab = tab;
 
     document.getElementById('dashboardContent').classList.add('hidden');
@@ -1470,7 +1474,7 @@ function limparFormulario() {
         });
 }
 
-function saveEvent() {
+async function saveEvent() {
     const evento = {
         nome: document.getElementById('nomeProposta').value,
         local: document.getElementById('local').value,
@@ -1489,14 +1493,17 @@ function saveEvent() {
     }
 
     if (editIndex !== null) {
+        // Edição - atualiza apenas local
         eventos[editIndex] = evento;
+        closeModal();
+        atualizarDashboard();
+        renderTabela();
+        alert('Evento atualizado localmente. Nota: edição na planilha requer implementação adicional.');
     } else {
-        eventos.push(evento);
+        // Novo evento - salva na API
+        await salvarEventoNaAPI(evento);
+        closeModal();
     }
-
-    closeModal();
-    atualizarDashboard();
-    renderTabela();
 }
 
 /* =========================
@@ -1601,15 +1608,196 @@ function atualizarRelatorios() {
     document.getElementById('relMedia').innerText = total ? Math.round(publico / total) : 0;
 }
 
+
+/* =========================
+   API GOOGLE SHEETS
+========================= */
+
+const API_URL = 'https://script.google.com/macros/s/AKfycbyYDvsvRyuOA69qj_Q90328oZyxqR2mcGOK91VOYZk2kzp7ibteVL1QakPsdGnRL1pv/exec';
+
+async function carregarEventosDaAPI() {
+    try {
+        const response = await fetch(API_URL);
+        const data = await response.json();
+        
+        // Mapear os dados da planilha para o formato do sistema
+        eventos = data.map(row => ({
+            nome: row['Nome da Proposta'] || '',
+            local: row['Local'] || '',
+            dataInicio: row['Início'] || '',
+            dataFim: row['Fim'] || '',
+            horarioInicio: row['Horário Início'] || '',
+            horarioFim: row['Horário Fim'] || '',
+            status: row['Status do Evento'] || 'em análise',
+            solicitante: row['Solicitante'] || '',
+            publico: Number(row['Público Alcançado'] || 0),
+            descricao: row['O que será realizado? Breve descrição.'] || ''
+        }));
+        
+        atualizarDashboard();
+        renderTabela();
+        console.log('Eventos carregados:', eventos.length);
+    } catch (error) {
+        console.error('Erro ao carregar eventos:', error);
+        alert('Erro ao carregar dados da planilha. Verifique a conexão.');
+    }
+}
+
+async function salvarEventoNaAPI(evento) {
+    try {
+        const dadosParaPlanilha = {
+            'Nome da Proposta': evento.nome,
+            'Local': evento.local,
+            'Início': evento.dataInicio,
+            'Fim': evento.dataFim,
+            'Status do Evento': evento.status,
+            'Solicitante': evento.solicitante,
+            'Público Alcançado': evento.publico
+        };
+        
+        const response = await fetch(API_URL, {
+            method: 'POST',
+            body: JSON.stringify(dadosParaPlanilha)
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            alert('Evento salvo com sucesso!');
+            await carregarEventosDaAPI(); // Recarrega a lista
+        }
+    } catch (error) {
+        console.error('Erro ao salvar evento:', error);
+        alert('Erro ao salvar na planilha.');
+    }
+}
+
+
+/* =========================
+   CALENDÁRIO
+========================= */
+
+let calendarDate = new Date();
+let calendarView = 'monthly'; // 'monthly' ou 'weekly'
+
+function navegarCalendario(direction) {
+    if (direction === 0) {
+        calendarDate = new Date();
+    } else if (calendarView === 'monthly') {
+        calendarDate.setMonth(calendarDate.getMonth() + direction);
+    } else {
+        calendarDate.setDate(calendarDate.getDate() + (direction * 7));
+    }
+    renderCalendario();
+}
+
+function mudarVisualizacao() {
+    calendarView = calendarView === 'monthly' ? 'weekly' : 'monthly';
+    document.getElementById('viewToggleText').innerText = 
+        calendarView === 'monthly' ? 'Visualização Semanal' : 'Visualização Mensal';
+    renderCalendario();
+}
+
+function renderCalendario() {
+    const monthNames = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 
+                        'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+    
+    document.getElementById('calendarMonth').innerText = 
+        `${monthNames[calendarDate.getMonth()]} ${calendarDate.getFullYear()}`;
+    
+    const container = document.getElementById('calendarContainer');
+    container.className = 'calendar-grid';
+    container.innerHTML = '';
+    
+    // Cabeçalho dos dias
+    ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'].forEach(dia => {
+        const header = document.createElement('div');
+        header.className = 'calendar-day-header';
+        header.innerText = dia;
+        container.appendChild(header);
+    });
+    
+    if (calendarView === 'monthly') {
+        renderMensal(container);
+    } else {
+        renderSemanal(container);
+    }
+}
+
+function renderMensal(container) {
+    const year = calendarDate.getFullYear();
+    const month = calendarDate.getMonth();
+    const firstDay = new Date(year, month, 1).getDay();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    
+    // Células vazias antes do primeiro dia
+    for (let i = 0; i < firstDay; i++) {
+        const empty = document.createElement('div');
+        empty.className = 'calendar-day';
+        container.appendChild(empty);
+    }
+    
+    // Dias do mês
+    for (let day = 1; day <= daysInMonth; day++) {
+        const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+        const dayEvents = eventos.filter(e => e.dataInicio === dateStr);
+        
+        const dayCell = document.createElement('div');
+        dayCell.className = 'calendar-day' + (dayEvents.length > 0 ? ' has-events' : '');
+        
+        dayCell.innerHTML = `
+            <div class="calendar-day-number">${day}</div>
+            ${dayEvents.slice(0, 3).map(e => 
+                `<div class="calendar-event">${e.nome}</div>`
+            ).join('')}
+            ${dayEvents.length > 3 ? `<div class="calendar-event">+${dayEvents.length - 3} mais</div>` : ''}
+        `;
+        
+        container.appendChild(dayCell);
+    }
+}
+
+function renderSemanal(container) {
+    const startOfWeek = new Date(calendarDate);
+    startOfWeek.setDate(calendarDate.getDate() - calendarDate.getDay());
+    
+    for (let i = 0; i < 7; i++) {
+        const currentDay = new Date(startOfWeek);
+        currentDay.setDate(startOfWeek.getDate() + i);
+        
+        const dateStr = currentDay.toISOString().split('T')[0];
+        const dayEvents = eventos.filter(e => e.dataInicio === dateStr);
+        
+        const dayCell = document.createElement('div');
+        dayCell.className = 'calendar-day' + (dayEvents.length > 0 ? ' has-events' : '');
+        dayCell.style.minHeight = '200px';
+        
+        dayCell.innerHTML = `
+            <div class="calendar-day-number">${currentDay.getDate()}/${currentDay.getMonth() + 1}</div>
+            ${dayEvents.map(e => 
+                `<div class="calendar-event" style="white-space: normal;">${e.nome}<br><small>${e.horarioInicio || ''}</small></div>`
+            ).join('')}
+        `;
+        
+        container.appendChild(dayCell);
+    }
+}
+
+
 /* =========================
    INIT
 ========================= */
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
     preencherSelect('eventoChegouAtraves', LISTA_ORIGEM_EVENTO);
     preencherSelect('local', LISTA_LOCAIS);
     preencherSelect('filterLocal', LISTA_LOCAIS);
 
-    atualizarDashboard();
+    // Carrega eventos da API do Google Sheets
+    await carregarEventosDaAPI();
+    
+    // Renderiza calendário
+    renderCalendario();
 });
+
 </script>
