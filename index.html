@@ -1313,7 +1313,6 @@
         </div>
     </div>
 
-<script>
 
 <script>
 /* =========================
@@ -1335,139 +1334,38 @@ async function carregarEventosDaAPI() {
         const response = await fetch(API_URL);
         const data = await response.json();
         
-        console.log('Dados recebidos da API:', data); // Para debug
-        console.log('Total de registros:', data.length);
-        
-        if (!data || data.length === 0) {
-            console.log('Nenhum evento encontrado na planilha');
-            eventos = [];
-            atualizarDashboard();
-            renderTabela();
-            return;
-        }
-        
-        // Mapear com os nomes EXATOS das colunas da sua planilha
         eventos = data.map(row => ({
-            // Colunas A-T (Geral)
-            dataEvento: row['Data do Evento'] || '',
-            dataCadastro: row['Data de Cadastro'] || '',
             nome: row['Nome da Proposta'] || '',
-            eventoChegouAtraves: row['O Evento Chegou Através?'] || '',
             local: row['Local'] || '',
             dataInicio: row['Início'] || '',
             dataFim: row['Fim'] || '',
-            previsaoObservacoes: row['Previsão e Observações'] || '',
+            horarioInicio: row['Horário Início'] || '',
+            horarioFim: row['Horário Fim'] || '',
             status: row['Status do Evento'] || 'em análise',
-            dataAlteracaoStatus: row['Data de Alteração do Status'] || '',
-            descricao: row['O que será realizado? Breve descrição.'] || '',
             solicitante: row['Solicitante'] || '',
-            plantonista: row['Plantonista'] || '',
-            responsavelProposta: row['Responsável Proposta'] || '',
-            contato: row['Contato'] || '',
-            termoCompromisso: row['T. Compromisso'] || '',
-            fichaApoio: row['F. Apoio'] || '',
-            fichaDivulgacao: row['F. Divulgação'] || '',
-            documentacaoContrato: row['Documentação Contrato'] || '',
             publico: Number(row['Público Alcançado'] || 0),
-            
-            // Colunas U-X (Divulgação)
-            divulgacaoRecebimento: row['Recebimento'] || '', // Coluna U
-            divulgacaoImpressao: row['Impressão'] || '',
-            divulgacaoPublicacao: row['Publicação'] || '',
-            divulgacaoLink: row['Link'] || '',
-            
-            // Colunas Y-AA (Contratos) - Nota: há 2 "Recebimento" na planilha
-            contratosRecebimento: row['Recebimento'] || '', // Coluna Y
-            contratosEmpenho: row['Empenho'] || '',
-            contratosPagamento: row['Pagamento'] || '',
-            
-            // Colunas AB-AQ (Apoio)
-            fichaApoioNumero: row['Nº da Ficha'] || '',
-            fichaApoioDataRecebimento: row['Data Recebimento'] || '',
-            fichaApoioMemo: row['Memo'] || '',
-            fichaApoioDataEnvio: row['Data Envio'] || '',
-            respSaude: row['Resp. SS - Saúde'] || '',
-            respSeguranca: row['Resp. SESEG - GCM'] || '',
-            respTransito: row['Resp. STMI - Trânsito'] || '',
-            respEletrica: row['Resp.SU - Elétrica'] || '',
-            respEspaco: row['Resp.SU - Espaço'] || '',
-            memoOutros: row['Memo Outros'] || '',
-            observacao: row['Observação'] || '',
-            dataEnvioOutros: row['Data Envio Outros'] || '',
-            dataResposta: row['Data Resposta'] || '',
-            memoCancelamento: row['Memo Cancelamento'] || '',
-            dataEnvioCancelamento: row['Data Envio Cancelamento'] || '',
-            observacoes: row['Observações'] || '',
-            
-            // Campos extras para compatibilidade com interface
-            horarioInicio: '', // Será extraído de "Previsão e Observações" se necessário
-            horarioFim: ''
+            descricao: row['O que será realizado? Breve descrição.'] || ''
         }));
         
         atualizarDashboard();
         renderTabela();
-        console.log('✅ Eventos carregados com sucesso:', eventos.length);
-        
+        console.log('Eventos carregados:', eventos.length);
     } catch (error) {
-        console.error('❌ Erro ao carregar eventos:', error);
-        console.error('Detalhes do erro:', error.message);
-        
-        eventos = [];
-        atualizarDashboard();
-        renderTabela();
-        
-        alert('Não foi possível carregar dados da planilha.\n\nDetalhes: ' + error.message);
+        console.error('Erro ao carregar eventos:', error);
+        alert('Erro ao carregar dados da planilha. Verifique a conexão.');
     }
 }
 
 async function salvarEventoNaAPI(evento) {
     try {
-        const hoje = new Date().toISOString().split('T')[0];
-        
         const dadosParaPlanilha = {
-            'Data do Evento': evento.dataInicio,
-            'Data de Cadastro': hoje,
             'Nome da Proposta': evento.nome,
-            'O Evento Chegou Através?': evento.eventoChegouAtraves || '',
             'Local': evento.local,
             'Início': evento.dataInicio,
             'Fim': evento.dataFim,
-            'Previsão e Observações': evento.previsaoObservacoes || '',
             'Status do Evento': evento.status,
-            'Data de Alteração do Status': hoje,
-            'O que será realizado? Breve descrição.': evento.descricao || '',
             'Solicitante': evento.solicitante,
-            'Plantonista': evento.plantonista || '',
-            'Responsável Proposta': evento.responsavelProposta || '',
-            'Contato': evento.contato || '',
-            'T. Compromisso': evento.termoCompromisso ? 'Sim' : 'Não',
-            'F. Apoio': evento.fichaApoio ? 'Sim' : 'Não',
-            'F. Divulgação': evento.fichaDivulgacao ? 'Sim' : 'Não',
-            'Documentação Contrato': evento.documentacaoContrato ? 'Sim' : 'Não',
-            'Público Alcançado': evento.publico || 0,
-            // Campos de divulgação, contratos e apoio virão vazios por enquanto
-            'Recebimento': '',
-            'Impressão': '',
-            'Publicação': '',
-            'Link': '',
-            'Empenho': '',
-            'Pagamento': '',
-            'Nº da Ficha': '',
-            'Data Recebimento': '',
-            'Memo': '',
-            'Data Envio': '',
-            'Resp. SS - Saúde': '',
-            'Resp. SESEG - GCM': '',
-            'Resp. STMI - Trânsito': '',
-            'Resp.SU - Elétrica': '',
-            'Resp.SU - Espaço': '',
-            'Memo Outros': '',
-            'Observação': '',
-            'Data Envio Outros': '',
-            'Data Resposta': '',
-            'Memo Cancelamento': '',
-            'Data Envio Cancelamento': '',
-            'Observações': ''
+            'Público Alcançado': evento.publico
         };
         
         const response = await fetch(API_URL, {
@@ -1478,14 +1376,12 @@ async function salvarEventoNaAPI(evento) {
         const result = await response.json();
         
         if (result.success) {
-            alert('✅ Evento salvo com sucesso na planilha!');
+            alert('Evento salvo com sucesso!');
             await carregarEventosDaAPI();
-        } else {
-            alert('⚠️ Houve um problema ao salvar o evento.');
         }
     } catch (error) {
-        console.error('❌ Erro ao salvar evento:', error);
-        alert('Erro ao salvar na planilha: ' + error.message);
+        console.error('Erro ao salvar evento:', error);
+        alert('Erro ao salvar na planilha.');
     }
 }
 
@@ -1866,5 +1762,4 @@ document.addEventListener('DOMContentLoaded', async () => {
     renderCalendario();
 });
 
-</script>
 </script>
