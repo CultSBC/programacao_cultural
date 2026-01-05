@@ -1334,54 +1334,55 @@ async function carregarEventosDaAPI() {
         const response = await fetch(API_URL);
         const data = await response.json();
         
-        eventos = data.map(row => ({
-            nome: row['Nome da Proposta'] || '',
-            local: row['Local'] || '',
-            dataInicio: row['Início'] || '',
-            dataFim: row['Fim'] || '',
-            horarioInicio: row['Horário Início'] || '',
-            horarioFim: row['Horário Fim'] || '',
-            status: row['Status do Evento'] || 'em análise',
-            solicitante: row['Solicitante'] || '',
-            publico: Number(row['Público Alcançado'] || 0),
-            descricao: row['O que será realizado? Breve descrição.'] || ''
-        }));
+        console.log('✅ Dados recebidos da API:', data);
+        console.log('📊 Total de registros:', data.length);
+        
+        if (!data || data.length === 0) {
+            console.log('⚠️ Nenhum evento encontrado na planilha');
+            eventos = [];
+            atualizarDashboard();
+            renderTabela();
+            return;
+        }
+        
+        // Os dados já vêm mapeados corretamente do Apps Script
+        eventos = data;
         
         atualizarDashboard();
         renderTabela();
-        console.log('Eventos carregados:', eventos.length);
+        console.log('✅ Eventos carregados com sucesso:', eventos.length);
+        console.log('📝 Primeiro evento:', eventos[0]);
+        
     } catch (error) {
-        console.error('Erro ao carregar eventos:', error);
-        alert('Erro ao carregar dados da planilha. Verifique a conexão.');
+        console.error('❌ Erro ao carregar eventos:', error);
+        console.error('Detalhes:', error.message);
+        
+        eventos = [];
+        atualizarDashboard();
+        renderTabela();
+        
+        alert('Não foi possível carregar dados da planilha.\n\n' + error.message);
     }
 }
 
 async function salvarEventoNaAPI(evento) {
     try {
-        const dadosParaPlanilha = {
-            'Nome da Proposta': evento.nome,
-            'Local': evento.local,
-            'Início': evento.dataInicio,
-            'Fim': evento.dataFim,
-            'Status do Evento': evento.status,
-            'Solicitante': evento.solicitante,
-            'Público Alcançado': evento.publico
-        };
-        
         const response = await fetch(API_URL, {
             method: 'POST',
-            body: JSON.stringify(dadosParaPlanilha)
+            body: JSON.stringify(evento)
         });
         
         const result = await response.json();
         
         if (result.success) {
-            alert('Evento salvo com sucesso!');
+            alert('✅ Evento salvo com sucesso na planilha!');
             await carregarEventosDaAPI();
+        } else {
+            alert('⚠️ Houve um problema ao salvar o evento.');
         }
     } catch (error) {
-        console.error('Erro ao salvar evento:', error);
-        alert('Erro ao salvar na planilha.');
+        console.error('❌ Erro ao salvar evento:', error);
+        alert('Erro ao salvar na planilha: ' + error.message);
     }
 }
 
